@@ -2,8 +2,14 @@
 
 https://assylbekgizatov.github.io/
 
-Static academic profile with an About page, publications page, and light/dark theme. Published from `main` with GitHub Pages. No build step required.
+Static academic website published through GitHub Pages from main. No build step is required.
 
-Edit `index.html` and `publications/index.html` for content, `style.css` for layout, and `app.js` for the theme toggle. `data.js` retains the structured publications and awards data. The portrait is in `assets/profile.webp`.
+- `index.html`: biography, industry work, research and recognition
+- `publications.html`: publications
+- `publications/index.html`: compatible alternate publication route
+- `data.js`: structured publication and award data
+- `style.css`: responsive layout
+- `app.js`: optional theme toggle
+- `assets/profile.webp`: portrait
 
-The CV link is pending the owner's supplied document.
+CV pending the owner's supplied document.
