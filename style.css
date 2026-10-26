@@ -10,5 +10,5 @@
 /* Consistent, understated profile typography */
 .profile-summary{min-width:0}.role-list{display:grid;gap:12px;margin-bottom:14px}.role-line{margin:0;font:inherit;line-height:1.5}.profile-summary .role-list,.profile-history{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;font-size:14px;font-weight:400;letter-spacing:normal}.profile-history{display:grid;gap:4px;line-height:1.5;color:var(--text);margin-bottom:16px}.founder-line{font-size:14px;margin-bottom:14px}.thesis{padding-left:15px;border-left:2px solid var(--line);margin-top:15px}.thesis-title{font-family:Georgia,"Times New Roman",serif;font-size:15px;line-height:1.55}.intro{margin-top:34px;margin-bottom:40px}.intro .profile-links{font-size:13px}@media(max-width:520px){.profile-summary{width:100%}.intro .profile-links{font-size:13px}}
 
-/* Slightly wider, higher portrait framing without changing the layout. */
-.avatar-frame{position:relative;overflow:hidden;background:var(--bg);border-radius:0;clip-path:circle(48% at 50% 46.6%)}.avatar-frame img{display:block;position:absolute;width:96%;height:auto;max-width:none;left:2%;bottom:5.7%}
+/* Slightly enlarged portrait, centered within the unchanged circular frame. */
+.avatar-frame{position:relative;overflow:hidden;background:var(--bg);border-radius:0;clip-path:circle(48% at 50% 46.6%)}.avatar-frame img{display:block;position:absolute;width:106%;height:auto;max-width:none;left:-7%;bottom:-6%}
