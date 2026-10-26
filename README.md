@@ -1,15 +1,9 @@
 # Assylbek Gizatov — Academic Website
 
-Personal academic website: https://assylbekgizatov.github.io/
+https://assylbekgizatov.github.io/
 
-Static HTML, CSS and JavaScript, published from the `main` branch with GitHub Pages.
+Static academic profile with an About page, publications page, and light/dark theme. Published from `main` with GitHub Pages. No build step required.
 
-## Editing
+Edit `index.html` and `publications/index.html` for content, `style.css` for layout, and `app.js` for the theme toggle. `data.js` retains the structured publications and awards data. The portrait is in `assets/profile.webp`.
 
-- `index.html`: biography, education, profile links and projects
-- `data.js`: publications and recognition
-- `style.css`: responsive layout and design
-- `app.js`: publication filtering and interface behaviour
-- `assets/profile.webp`: profile photograph
-
-No build step is required. Preview with any local static web server.
+The CV link is pending the owner's supplied document.
