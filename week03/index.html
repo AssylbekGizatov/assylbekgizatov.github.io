@@ -1,0 +1,359 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><meta name="description" content="Week 03: полный практикум pandas и файлов на City Trips. Фильтры, groupby, CSV/JSON, безопасный merge, проверка и сохранение отчёта."><title>Week 03 · Pandas и файлы — BrainCode Academy</title><link rel="stylesheet" href="../course/style.css"><style>aside{max-height:calc(100vh - 115px);overflow:auto;padding-bottom:15px}aside nav{gap:8px}@media(max-width:700px){aside{max-height:none;overflow:visible}}table{border-collapse:collapse;width:100%;font-size:14px}td,th{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid var(--line)}th{color:var(--mint)}.table-wrap{overflow-x:auto;margin:24px 0}p code,li code,td code{background:var(--panel);padding:2px 4px;border-radius:3px;font-size:.88em}li{margin:9px 0;color:var(--muted)}main p a,main li a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}figure svg{width:100%;height:auto;display:block;color:var(--text)}.result{padding:15px 20px;background:var(--panel);border-left:3px solid var(--mint);font-size:14px}.result strong{color:var(--mint)}.week-links{display:flex;flex-wrap:wrap;gap:20px;margin-top:25px}.week-links a{font-size:13px;color:var(--accent)}h3{margin-top:28px}details h4{font-size:16px}summary{padding:4px}#join-mode{padding:8px;color:var(--text);background:var(--panel);border:1px solid var(--line);font:inherit}#join-result{min-height:90px}.mini-chart{max-width:750px}.study-check label{display:block;margin:15px 0}.study-check input{accent-color:var(--mint);margin-right:12px}@media(max-width:700px){td,th{padding:8px;font-size:12px}.result{padding:12px}.metrics{gap:8px}.metrics strong{font-size:29px}h1{font-size:43px}}</style></head><body><div id="progress"></div><header><a href="../course/" class="brand">BRAINCODE<span> / FIELD NOTES</span></a><a href="Week_03_City_Trips_Pandas.ipynb" download class="download">↓ Notebook</a></header><div class="shell"><aside><small>ML & AI · WEEK 03</small><nav><a href="#top">Обзор недели</a><a href="#start">00 Как запускать</a><a href="#data">01 Данные</a><a href="#quality">02 Качество</a><a href="#index">03 Индекс</a><a href="#filter">04 Фильтры</a><a href="#features">05 Новые колонки</a><a href="#groups">06 Группировки</a><a href="#channels">07 Первый график</a><a href="#files">08 CSV и JSON</a><a href="#merge">09 Объединение</a><a href="#validate">10 Проверки</a><a href="#report">11 Отчёт</a><a href="#export">12 Экспорт</a><a href="#conclusion">13 Вывод</a><a href="#practice">14 Практика</a><a href="#bonus">15 Бонус</a><a href="#check">Проверь себя</a><a href="#resources">Материалы</a></nav><p>Асылбек Ғизатов<br>BrainCode Academy<br>Machine Learning & AI</p><button id="theme" type="button">Светлая тема</button><button type="button" onclick="window.print()">Печать / PDF</button></aside><main>
+<div id="top" class="hero"><div class="eyebrow">TECH ORDA / LEARNING PAPER 03</div><h1>Два файла.<br>Один <em>честный отчёт.</em></h1><p class="lead">Pandas, CSV и JSON на городских поездках.<br>Не просто соединить таблицы, а убедиться, что ни одна заявка и ни один тенге не потерялись.</p><div class="hero-chart"><svg viewBox="0 0 800 180" role="img"><title>Путь данных: 170 строк выгрузки, 168 уникальных заявок и проверенный отчёт</title><g fill="none" stroke="currentColor" opacity=".4"><rect x="15" y="35" width="210" height="100" rx="9"/><rect x="290" y="35" width="210" height="100" rx="9"/><rect x="565" y="35" width="220" height="100" rx="9"/></g><g fill="currentColor" text-anchor="middle" font-family="system-ui"><text x="120" y="75" font-size="30">170 строк</text><text x="120" y="108" font-size="15">исходная выгрузка</text><text x="395" y="75" font-size="30">168 заявок</text><text x="395" y="108" font-size="15">проверенные ID</text><text x="675" y="75" font-size="30">308 400 ₸</text><text x="675" y="108" font-size="15">сохранённая сумма</text></g><g fill="#e07b4f"><path d="M242 79h27v-7l15 13-15 13v-7h-27z"/><path d="M517 79h27v-7l15 13-15 13v-7h-27z"/></g></svg><span>READ → CHECK → TRANSFORM → JOIN → VERIFY</span><small>Точные числа встроенного учебного набора. Не реальные показатели сервиса.</small></div><div class="metrics"><div><strong>168</strong><span>уникальных заявок</span></div><div><strong>139</strong><span>завершённых поездок</span></div><div><strong>29</strong><span>отменённых заявок</span></div></div><div class="callout">Продолжение Titanic из Week 02. Полностью синтетические данные за 5–11 октября 2026. Не статистика Атырау, не результаты Aqyl Jol и не обучение модели.</div><div class="week-links"><a href="../course/">← Все недели</a><a href="../week02/">← Week 02: Titanic</a><a href="../week04/">Week 04: Visual EDA →</a></div></div>
+<section id="route"><span class="section-num"></span><h2>Сначала вопрос. Потом команда.</h2><h3>Как проходить notebook</h3>
+<ul><li>Запускайте ячейки сверху вниз: <strong>Shift + Enter</strong>. Один блок кода обычно решает один вопрос.</li><li>Перед запуском попробуйте угадать результат. После запуска объясните его обычными словами.</li><li>Основной маршрут: разделы <strong>0–13</strong>. <strong>14–16</strong> — дополнительные задания, решения и справка.</li><li>Задания не мешают <code>Run All</code>: учебные TODO записаны комментариями. Рабочие решения находятся отдельно ниже.</li><li>Файл сохранён с результатами: сначала можно просто читать. Для собственной проверки: <strong>Restart Kernel → Run All</strong>. В Colab: <strong>Runtime → Restart session and run all</strong>.</li></ul>
+<p><strong>Что уже знакомо по Titanic:</strong> <code>head</code>, <code>info</code>, <code>describe</code>, <code>loc</code>, условия, <code>groupby</code>, пропуски.   <strong>Что добавим:</strong> смысл индекса, даты, два формата файлов, <code>merge</code>, проверка потерь/размножения строк и сохранение отчёта.</p>
+<p>Данные встроены в этот <code>.ipynb</code>. После установки библиотек для выполнения интернет, GitHub, API-ключи и отдельные файлы не нужны.</p><h4>Маршрут двух занятий</h4>
+<p>Это крупный конспект-практикум, а не требование разобрать каждую строку за одну пару. Теория объясняется отдельно на презентациях, notebook остаётся опорой после занятия.</p>
+<div class="table-wrap"><table><tr><th>Занятие</th><th>Теория, 36 минут</th><th>Практика, 54 минуты</th></tr><tr><td>1</td><td>Строка/столбец/индекс, маски, группы, смысл пропуска</td><td>0–3: загрузка и инспекция (15 мин); 4–6: фильтр, новая колонка, сводка (25 мин); 7: график и мини-задача (14 мин)</td></tr><tr><td>2</td><td>CSV/JSON, ключ, LEFT/INNER JOIN, проверки и экспорт</td><td>8–9: JSON и merge (20 мин); 10–11: проверка и отчёт (20 мин); 12–13: экспорт и итог (14 мин)</td></tr></table></div>
+<p><strong>Минимум на занятии:</strong> код с преподавателем + остановки «Попробуйте». Тонкости из блока «Если осталось время», 8 самостоятельных задач и бонус оставьте для самостоятельной работы (примерно 60–90 минут).</p><p>На странице код читается и копируется. Python выполняется в Jupyter или Colab, не внутри браузерного учебника. Примеры используют переменные из предыдущих шагов. Скачайте notebook и сначала запустите его служебную ячейку данных.</p></section>
+<section id="start"><span class="section-num">00</span><h2>Подготовка без поиска файлов</h2><h3>0. Подготовка</h3>
+<p>Нужны Python 3.10+, pandas, NumPy, matplotlib и среда Jupyter/Colab. В Colab обычно всё уже установлено.</p>
+<p>Если импорт ниже пишет <code>ModuleNotFoundError</code>, выполните установку в отдельной ячейке, затем перезапустите ядро:</p>
+<p><code>%pip install pandas==2.2.3 numpy==2.1.3 matplotlib==3.9.2</code></p>
+<p>NumPy здесь нужен только для простой проверки чисел. Не нужно заново изучать всю библиотеку.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import json
+from pathlib import Path
+from tempfile import mkdtemp
+from IPython.display import display
+
+pd.set_option(&quot;display.max_columns&quot;, 12)
+plt.rcParams.update({&quot;figure.figsize&quot;: (8, 4), &quot;figure.dpi&quot;: 110})
+print(&quot;pandas:&quot;, pd.__version__, &quot;| NumPy:&quot;, np.__version__)</code></pre><h4>Учебные файлы уже внутри notebook</h4>
+<p>Следующая служебная ячейка содержит текст двух файлов. <strong>Просто запустите её; переписывать 170 строк данных не нужно.</strong> В Jupyter/Colab её можно свернуть.</p>
+<p>Она создаёт новую папку <code>week03_run_...</code> рядом с notebook и кладёт туда <code>data/</code> и <code>output/</code>. Новая папка при каждом полном запуске защищает ваши предыдущие результаты от перезаписи. Свои файлы она не ищет и не меняет.</p>
+<p>В настоящем проекте эти файлы пришли бы из базы или системы логирования. Здесь их небольшой снимок включён прямо в учебник, чтобы всё работало офлайн.</p><div class="callout">Служебная ячейка notebook создаёт <code>trips.csv</code> и <code>zones.json</code> в новой папке. На сайте длинный снимок не дублируется. Откройте скачанный notebook, выполните импорт и ячейку «Учебные файлы уже внутри notebook», затем продолжайте с раздела 1.</div></section>
+<section id="data"><span class="section-num">01</span><h2>Одна строка: заявка, не обязательно поездка</h2><h2>Занятие 1. Понимаем одну таблицу</h2>
+<h3>1. Читаем CSV и задаём правильный вопрос</h3>
+<p><strong>Одна строка должна быть одной заявкой на поездку.</strong> Заявка может завершиться поездкой (<code>completed</code>) или отменой (<code>cancelled</code>). Поэтому «число строк» и «число состоявшихся поездок» не всегда одно и то же.</p>
+<p>В исходном файле намеренно есть две повторные записи. Пока ничего не удаляем: сначала посмотрим.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># read_csv превращает файл с разделителем-запятой в DataFrame.
+raw_trips = pd.read_csv(DATA_DIR / &quot;trips.csv&quot;)
+raw_trips.head()</code></pre><h4>Словарь полей</h4>
+<div class="table-wrap"><table><tr><th>Столбец</th><th>Смысл</th><th>На что обратить внимание</th></tr><tr><td><code>trip_id</code></td><td>Идентификатор заявки</td><td>Ключ, а не величина для среднего</td></tr><tr><td><code>requested_at</code></td><td>Время создания заявки</td><td>Пока строка; локальное условное время без часового пояса</td></tr><tr><td><code>zone_id</code></td><td>Код зоны подачи</td><td>Название получим из JSON</td></tr><tr><td><code>channel</code></td><td><code>app</code>, <code>phone</code>, <code>web</code></td><td>Есть несколько неизвестных значений</td></tr><tr><td><code>status</code></td><td><code>completed</code> или <code>cancelled</code></td><td>Отмена — тоже заявка, но не выполненная поездка</td></tr><tr><td><code>distance_km</code></td><td>Фактически пройденные километры</td><td>Только завершённые поездки</td></tr><tr><td><code>duration_min</code></td><td>Фактическая длительность</td><td>В двух завершённых поездках измерение потеряно</td></tr><tr><td><code>fare_kzt</code></td><td>Записанная сумма за поездку, ₸</td><td>Только завершённые поездки; без чаевых и дополнительных платежей</td></tr></table></div>
+<p>У отменённых заявок нет фактической длительности, дистанции и стоимости. <strong>Пропуск здесь не означает нулевую поездку.</strong></p>
+<p>Для отчёта будем называть сумму <code>fare_kzt</code> <strong>суммой оплат</strong>. Это не прибыль: расходов, возвратов и полной бухгалтерской информации у нас нет.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># shape — (число строк, число столбцов).
+print(&quot;Размер:&quot;, raw_trips.shape)
+print(&quot;Столбцы:&quot;, raw_trips.columns.tolist())</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Посмотрим на конец и случайные строки, не только на начало файла.
+display(raw_trips.tail(3))
+display(raw_trips.sample(3, random_state=42))</code></pre><p><strong>Остановитесь:</strong> почему нельзя сразу сказать «в таблице 170 поездок»? Назовите две причины до следующего раздела.</p></section>
+<section id="quality"><span class="section-num">02</span><h2>Проверяем до изменения</h2><h3>2. Сначала проверяем, затем изменяем</h3>
+<p><code>info()</code> показывает типы и число заполненных значений. <code>describe()</code> описывает числа. Это разные вопросы.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># info сам печатает результат, поэтому print(raw_trips.info()) не нужен.
+raw_trips.info()</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Не вычисляем среднее идентификатора trip_id.
+raw_trips[[&quot;distance_km&quot;, &quot;duration_min&quot;, &quot;fare_kzt&quot;]].describe().round(2)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># isna → True/False; sum считает True как 1.
+raw_trips.isna().sum()</code></pre><h4>Две одинаковые записи — две заявки?</h4>
+<p><code>duplicated()</code> без аргументов сравнивает <strong>все поля</strong>. <code>duplicated(&quot;trip_id&quot;)</code> проверяет только ключ.</p>
+<p>В этом учебном файле две строки повторены при выгрузке полностью. Их можно убрать. Если у одинакового ID отличаются стоимость или статус, нельзя просто выбрать удобную строку: нужно разбираться в причине.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># keep=False показывает все экземпляры повторяющихся строк.
+print(&quot;Лишних полных повторов:&quot;, raw_trips.duplicated().sum())
+raw_trips.loc[raw_trips.duplicated(keep=False)].sort_values(&quot;trip_id&quot;)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Исходник raw_trips сохраняем. Работаем с отдельной таблицей trips.
+trips = raw_trips.drop_duplicates().copy()
+print(&quot;До:&quot;, len(raw_trips), &quot;| После:&quot;, len(trips))
+print(&quot;Каждый trip_id уникален:&quot;, trips[&quot;trip_id&quot;].is_unique)</code></pre><p><code>assert</code> — небольшая проверка: если утверждение неверно, выполнение остановится с понятной ошибкой. Это страховка от незаметной порчи отчёта, не способ «подогнать» результат.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>assert trips[&quot;trip_id&quot;].is_unique, &quot;Один trip_id встретился несколько раз&quot;
+assert len(raw_trips) - len(trips) == 2, &quot;Проверьте, какие строки удалены&quot;
+print(&quot;Проверки повторов пройдены.&quot;)</code></pre><h4>Считаем пропуски с понятным знаменателем</h4>
+<p>Теперь базовая единица — <strong>168 уникальных заявок</strong>, а не исходные строки с повторами. Одна отсутствующая длительность — это одна заявка, а не один отсутствующий символ.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>quality = pd.DataFrame({
+    &quot;missing_count&quot;: trips.isna().sum(),
+    &quot;missing_pct&quot;: trips.isna().mean() * 100,
+})
+quality.round(1)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># size считает заявки, count — известные длительности.
+trips.groupby(&quot;status&quot;).agg(
+    requests=(&quot;trip_id&quot;, &quot;size&quot;),
+    known_duration=(&quot;duration_min&quot;, &quot;count&quot;),
+)</code></pre><p><strong>Попробуйте:</strong> объясните пропуски в <code>duration_min</code> отдельно для отменённых и завершённых заявок. Почему <code>fillna(0)</code> исказит среднюю длительность?</p>
+<p>Часть синтаксиса <code>agg</code> пока новая. Сейчас важен смысл: сравнить число заявок с числом измерений. В разделе 6 разберём запись по частям.</p><div class="result"><strong>Самопроверка:</strong> 170 → 168 строк. 29 отмен. Длительность отсутствует у 31 заявки: 29 отмен + 2 завершённые поездки. Это разные причины пропуска. Среди завершённых: 2 / 139 ≈ 1,44% неизвестных длительностей.</div></section>
+<section id="index"><span class="section-num">03</span><h2>Столбец, таблица и адрес строки</h2><h3>3. Столбец, таблица и индекс</h3>
+<ul><li><code>trips[&quot;status&quot;]</code> — одна <code>Series</code>.</li><li><code>trips[[&quot;trip_id&quot;, &quot;status&quot;]]</code> — <code>DataFrame</code> из двух столбцов.</li><li><code>iloc</code> выбирает по <strong>позиции</strong>, начиная с нуля.</li><li><code>loc</code> выбирает по <strong>метке индекса</strong> или условию.</li></ul>
+<p>Индекс слева — адрес строки внутри таблицы. Это не обязательно номер заявки.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>print(type(trips[&quot;status&quot;]).__name__)
+print(type(trips[[&quot;trip_id&quot;, &quot;status&quot;]]).__name__)
+trips[[&quot;trip_id&quot;, &quot;status&quot;, &quot;fare_kzt&quot;]].head(4)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Позиции 0, 1, 2; правая граница iloc не включается.
+trips.iloc[0:3, 0:5]</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Сделаем trip_id адресом строки в отдельной таблице.
+by_id = trips.set_index(&quot;trip_id&quot;, verify_integrity=True)
+by_id.loc[[1002, 1003], [&quot;zone_id&quot;, &quot;status&quot;, &quot;fare_kzt&quot;]]</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Здесь 1002 — метка. А 1 — вторая позиция.
+display(by_id.loc[1002, [&quot;status&quot;, &quot;fare_kzt&quot;]])
+display(by_id.iloc[1][[&quot;status&quot;, &quot;fare_kzt&quot;]])</code></pre><p><strong>Попробуйте:</strong> найдите заявку <code>1010</code> через <code>loc</code>. Затем найдите первые две строки через <code>iloc</code>. Почему <code>by_id.iloc[1010]</code> не означает «найти заявку 1010»?</p>
+<p>Основной анализ продолжаем на <code>trips</code>, где <code>trip_id</code> остался обычным столбцом. Не нужно постоянно менять индекс.</p></section>
+<section id="filter"><span class="section-num">04</span><h2>Переводим вопрос в маску</h2><h3>4. Фильтры: от вопроса к условию</h3>
+<p>Сначала формулируем вопрос словами: «Какие заявки завершились поездкой?» Затем строим условие. Булева маска хранит по одному <code>True</code> или <code>False</code> для каждой строки.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>completed_mask = trips[&quot;status&quot;] == &quot;completed&quot;
+completed_mask.head(8)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Оставляем только строки, где маска равна True.
+completed = trips.loc[completed_mask].copy()
+print(&quot;Завершённых поездок:&quot;, len(completed))
+completed.head(3)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># И: поездка завершилась И дистанция не меньше 10 км.
+long_trips = trips.loc[
+    (trips[&quot;status&quot;] == &quot;completed&quot;) &amp; (trips[&quot;distance_km&quot;] &gt;= 10),
+    [&quot;trip_id&quot;, &quot;distance_km&quot;, &quot;duration_min&quot;, &quot;fare_kzt&quot;],
+]
+print(&quot;Найдено:&quot;, len(long_trips))
+long_trips.head()</code></pre><p>Для таблиц используем <code>&amp;</code> (И), <code>|</code> (ИЛИ), <code>~</code> (НЕ). Каждое условие — в скобках. Обычные Python <code>and</code>/<code>or</code> здесь не подходят.</p>
+<p>Если нужно несколько допустимых значений одного поля, <code>isin</code> обычно проще, чем длинная цепочка «ИЛИ».</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Выбираем заявки из приложения или с сайта, включая отменённые.
+digital_requests = trips.loc[trips[&quot;channel&quot;].isin([&quot;app&quot;, &quot;web&quot;])]
+print(&quot;Из app/web:&quot;, len(digital_requests))
+digital_requests[&quot;status&quot;].value_counts()</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Пустые значения ищем через isna, а не сравнение с None или np.nan.
+missing_duration = completed.loc[
+    completed[&quot;duration_min&quot;].isna(),
+    [&quot;trip_id&quot;, &quot;status&quot;, &quot;distance_km&quot;, &quot;duration_min&quot;],
+]
+missing_duration</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Сортировка меняет порядок результата, а не исходный trips.
+completed.sort_values(&quot;fare_kzt&quot;, ascending=False)[
+    [&quot;trip_id&quot;, &quot;distance_km&quot;, &quot;fare_kzt&quot;]
+].head(5)</code></pre><p><strong>Попробуйте, 3–4 минуты:</strong> отберите завершённые поездки из <code>app</code> со стоимостью не меньше 2000 ₸. Выведите ID, дистанцию и стоимость. Посчитайте строки.</p>
+<p>Подсказка: начните с <code>completed</code>, тогда условие по статусу повторять не нужно.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Ваш код здесь. Пример структуры:
+# selected = completed.loc[(...) &amp; (...), [...]]
+# display(selected.head())
+# print(len(selected))</code></pre></section>
+<section id="features"><span class="section-num">05</span><h2>Новые столбцы без циклов</h2><h3>5. Новые столбцы без циклов</h3>
+<p>Чтобы перевести минуты в часы, не нужен цикл по строкам: pandas применит деление ко всему столбцу. Для учебных признаков создадим копию, исходный <code>trips</code> оставим понятным.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>analysis = completed.copy()
+analysis[&quot;duration_hours&quot;] = analysis[&quot;duration_min&quot;] / 60
+analysis[[&quot;duration_min&quot;, &quot;duration_hours&quot;]].head().round(2)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Прежде чем делить на дистанцию, проверим, что она положительная.
+assert analysis[&quot;distance_km&quot;].gt(0).all(), &quot;Есть нулевая или отрицательная дистанция&quot;
+analysis[&quot;fare_per_km&quot;] = analysis[&quot;fare_kzt&quot;] / analysis[&quot;distance_km&quot;]
+analysis[[&quot;distance_km&quot;, &quot;fare_kzt&quot;, &quot;fare_per_km&quot;]].head().round(2)</code></pre><p><strong>Как читать <code>fare_per_km</code>:</strong> это записанная сумма оплаты, делённая на дистанцию конкретной поездки. Это не доказанная ставка тарифа: в сумме может быть фиксированная часть. Короткая поездка поэтому может быть дороже «за километр».</p>
+<p>Пропуск длительности при делении остаётся пропуском. Мы не восстанавливаем неизвестное измерение арифметикой.</p></section>
+<section id="groups"><span class="section-num">06</span><h2>Один вопрос для каждой группы</h2><h3>6. groupby: один вопрос для каждой группы</h3>
+<p>Представьте три шага:</p>
+<ol><li>Разделить заявки по каналу заказа.</li><li>В каждой группе посчитать нужный показатель.</li><li>Получить маленькую итоговую таблицу.</li></ol>
+<p>Начнём с одного показателя.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># dropna=False оставляет неизвестный канал отдельной группой.
+requests_by_channel = trips.groupby(&quot;channel&quot;, dropna=False).size()
+requests_by_channel</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># normalize=True делит количество на число заявок.
+(trips[&quot;status&quot;].value_counts(normalize=True) * 100).round(1)</code></pre><p>У доли обязательно есть знаменатель. Здесь это <strong>все уникальные заявки</strong>. Доля отмен в приложении имела бы другой знаменатель: только заявки из приложения.</p>
+<p>Теперь несколько метрик сразу. В <code>agg</code> запись <code>requests=(&quot;trip_id&quot;, &quot;size&quot;)</code> читается так: «создай столбец requests и посчитай строки группы».</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>channel_summary = trips.groupby(&quot;channel&quot;, dropna=False).agg(
+    requests=(&quot;trip_id&quot;, &quot;size&quot;),
+    known_duration=(&quot;duration_min&quot;, &quot;count&quot;),
+    median_duration_min=(&quot;duration_min&quot;, &quot;median&quot;),
+)
+channel_summary.round(1)</code></pre><p><code>size</code> считает все заявки, <code>count</code> — только известные значения выбранного столбца. Медиана пропускает отсутствующие значения.</p>
+<p>В таблице выше <code>requests</code> включает отмены, а медиана длительности описывает только известные длительности выполненных поездок. Поэтому рядом оставлено число измерений. Для денежного отчёта явно отберём завершённые поездки.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>completed_by_zone = completed.groupby(&quot;zone_id&quot;).agg(
+    completed_trips=(&quot;trip_id&quot;, &quot;size&quot;),
+    payments_kzt=(&quot;fare_kzt&quot;, &quot;sum&quot;),
+    median_fare_kzt=(&quot;fare_kzt&quot;, &quot;median&quot;),
+)
+completed_by_zone.sort_values(&quot;payments_kzt&quot;, ascending=False)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># После группировки сумма должна остаться той же.
+assert completed_by_zone[&quot;completed_trips&quot;].sum() == len(completed)
+assert np.isclose(completed_by_zone[&quot;payments_kzt&quot;].sum(), completed[&quot;fare_kzt&quot;].sum())
+print(&quot;Группы не потеряли поездки и суммы.&quot;)</code></pre><h4>Что пока нельзя утверждать</h4>
+<p>Большая сумма оплат в зоне не означает большую прибыль или лучшее качество сервиса. Возможно, там просто больше поездок или они длиннее. Сравнивайте показатель вместе с количеством наблюдений.</p>
+<p><strong>Попробуйте:</strong> в сводку по зонам добавьте медианную дистанцию. Затем объясните, почему средняя стоимость и общая сумма отвечают на разные вопросы.</p><div class="formula">Доля отмен = 29 / 168 × 100 ≈ 17,26%<br>Средняя стоимость ≠ сумма оплат ≠ прибыль</div></section>
+<section id="channels"><span class="section-num">07</span><h2>Первый график: заявки по каналам</h2><h3>7. Первый график: сколько заявок пришло из каждого канала?</h3>
+<p>Столбчатая диаграмма сравнивает категории. Сначала готовим маленькую таблицу, затем рисуем её. Неизвестный канал оставим видимым.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>channel_counts = trips[&quot;channel&quot;].fillna(&quot;unknown&quot;).value_counts()
+ax = channel_counts.plot.bar(color=&quot;#2563EB&quot;, rot=0)
+ax.set_title(&quot;Заявки по каналам • учебные данные&quot;)
+ax.set_xlabel(&quot;Канал заказа&quot;)
+ax.set_ylabel(&quot;Количество уникальных заявок&quot;)
+ax.grid(axis=&quot;y&quot;, alpha=0.2)
+plt.tight_layout()
+plt.show()</code></pre><p><strong>Скажите вслух:</strong> что здесь считается, какой канал встречается чаще, где видны пропуски? Почему по высоте столбца нельзя судить о качестве приложения?</p>
+<p><strong>Контрольная точка занятия 1:</strong> вы можете загрузить таблицу, сохранить исходник, убрать доказанные повторы, выбрать строки и построить сводку. На следующем занятии к кодам зон добавим смысл из второго файла.</p><figure class="mini-chart"><svg viewBox="0 0 660 280" role="img"><title>Заявки по каналам: app 116, phone 34, web 15, неизвестный 3. Всего 168.</title><g font-family="system-ui" font-size="16"><text x="95" y="53" text-anchor="end" fill="currentColor">app</text><rect x="115" y="32" width="464" height="30" fill="var(--mint)"/><text x="589" y="53" fill="currentColor">116</text><text x="95" y="109" text-anchor="end" fill="currentColor">phone</text><rect x="115" y="88" width="136" height="30" fill="var(--mint)"/><text x="261" y="109" fill="currentColor">34</text><text x="95" y="165" text-anchor="end" fill="currentColor">web</text><rect x="115" y="144" width="60" height="30" fill="var(--mint)"/><text x="185" y="165" fill="currentColor">15</text><text x="95" y="221" text-anchor="end" fill="currentColor">unknown</text><rect x="115" y="200" width="12" height="30" fill="var(--mint)"/><text x="137" y="221" fill="currentColor">3</text><path d="M115 20V245H600" stroke="currentColor" fill="none"/><text x="115" y="270" fill="currentColor">0</text><text x="470" y="270" fill="currentColor">Число заявок</text></g></svg><figcaption>Тот же фиксированный снимок, что в notebook. Масштаб начинается с нуля.</figcaption></figure></section>
+<section id="files"><span class="section-num">08</span><h2>CSV хранит строки. JSON связывает смысл.</h2><h2>Занятие 2. Соединяем файлы и сохраняем результат</h2>
+<p>Если открыли notebook заново, выполните ячейки сверху до этого места. Не нужно вручную восстанавливать переменные из памяти.</p><h3>8. CSV, даты и JSON</h3>
+<p>CSV хранит прямоугольную таблицу текстом. Название столбца <code>requested_at</code> само по себе не превращает строку в дату.</p>
+<p>Научимся явно преобразовывать время и получать из него день и час.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>print(&quot;Тип до:&quot;, trips[&quot;requested_at&quot;].dtype)
+trips[&quot;requested_at&quot;] = pd.to_datetime(
+    trips[&quot;requested_at&quot;], format=&quot;%Y-%m-%d %H:%M&quot;, errors=&quot;raise&quot;
+)
+print(&quot;Тип после:&quot;, trips[&quot;requested_at&quot;].dtype)</code></pre><p>Формат <code>%Y-%m-%d %H:%M</code> означает «год-месяц-день часы:минуты». <code>errors=&quot;raise&quot;</code> остановит код, если строка не соответствует формату, вместо незаметной потери даты.</p>
+<p>На следующих выгрузках можно читать дату сразу: <code>pd.read_csv(..., parse_dates=[&quot;requested_at&quot;])</code>. Здесь разделяем два шага, чтобы увидеть изменение типа.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>trips[&quot;request_date&quot;] = trips[&quot;requested_at&quot;].dt.date
+trips[&quot;request_hour&quot;] = trips[&quot;requested_at&quot;].dt.hour
+trips[[&quot;trip_id&quot;, &quot;requested_at&quot;, &quot;request_date&quot;, &quot;request_hour&quot;]].head()</code></pre><h4>Как выглядит JSON-справочник</h4>
+<p>JSON может хранить список объектов. Здесь один объект описывает одну зону; ключ <code>zone_id</code> должен быть уникальным.</p>
+<p>Не нужно учить новый язык: в Python список объектов читается как список словарей.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>with (DATA_DIR / &quot;zones.json&quot;).open(encoding=&quot;utf-8&quot;) as file:
+    zone_records = json.load(file)
+
+print(type(zone_records).__name__)
+zone_records[0]</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Из списка словарей получаем привычную таблицу.
+zones = pd.DataFrame(zone_records)
+zones</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>print(&quot;Заявок:&quot;, len(trips), &quot;| Зон в справочнике:&quot;, len(zones))
+print(&quot;Ключ зон уникален:&quot;, zones[&quot;zone_id&quot;].is_unique)
+assert zones[&quot;zone_id&quot;].notna().all(), &quot;В справочнике пустой ключ&quot;
+assert zones[&quot;zone_id&quot;].is_unique, &quot;В справочнике повторяется ключ&quot;</code></pre><p><strong>Попробуйте:</strong> почему <code>zone_id</code> повторяется в заявках, но не должен повторяться в справочнике? Можно ли объединять по порядку строк: первая заявка с первой зоной?</p></section>
+<section id="merge"><span class="section-num">09</span><h2>Объединяем по ключу, не по порядку</h2><h3>9. merge: добавляем названия зон по ключу</h3>
+<p>У нас отношение <strong>многие к одному</strong>: много заявок могут приходить из одной зоны.</p>
+<ul><li><code>on=&quot;zone_id&quot;</code> — ищем совпадение по коду зоны.</li><li><code>how=&quot;left&quot;</code> — сохраняем каждую заявку из левой таблицы.</li><li><code>validate=&quot;many_to_one&quot;</code> — проверяем, что справа код не повторяется.</li><li><code>indicator=True</code> — добавляем служебный столбец с результатом поиска пары.</li></ul>
+<p>Это тот же смысл, который позже появится в SQL JOIN. Сейчас важнее понимать строки, чем запоминать все параметры.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>joined = trips.merge(
+    zones,
+    on=&quot;zone_id&quot;,
+    how=&quot;left&quot;,
+    validate=&quot;many_to_one&quot;,
+    indicator=True,
+)
+joined[[&quot;trip_id&quot;, &quot;zone_id&quot;, &quot;zone_name&quot;, &quot;status&quot;, &quot;_merge&quot;]].head()</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># both — пара найдена; left_only — заявку сохранили, но зоны нет.
+joined[&quot;_merge&quot;].value_counts()</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>unmatched = joined.loc[
+    joined[&quot;_merge&quot;] == &quot;left_only&quot;,
+    [&quot;trip_id&quot;, &quot;zone_id&quot;, &quot;zone_name&quot;, &quot;status&quot;, &quot;fare_kzt&quot;],
+]
+unmatched</code></pre><p>В справочнике намеренно отсутствует <code>Z99</code>. Мы не придумываем название района и не удаляем заявку: её сумма известна, неизвестна только подпись зоны.</p>
+<p>Для отчёта создадим отдельную подпись «Неизвестная зона». Исходный <code>zone_name</code> оставим без изменения, чтобы проблема была видна.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>joined[&quot;zone_report&quot;] = joined[&quot;zone_name&quot;].fillna(&quot;Неизвестная зона&quot;)
+joined.loc[joined[&quot;_merge&quot;] == &quot;left_only&quot;, [&quot;trip_id&quot;, &quot;zone_id&quot;, &quot;zone_report&quot;]]</code></pre><div class="result"><strong>Ожидаемый результат:</strong> both: 167, left_only: 1. Заявка 1093, зона Z99, оплата 2700 ₸. Неизвестно название зоны, а не сама сумма.</div></section>
+<section id="validate"><span class="section-num">10</span><h2>Красивой таблицы недостаточно</h2><h3>10. Проверяем объединение</h3>
+<p>Правильный на вид результат может быть неправильным по числу строк. Минимальная страховка:</p>
+<ol><li>число заявок не изменилось;</li><li>каждый ID по-прежнему уникален;</li><li>сумма оплат не изменилась.</li></ol><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>assert len(joined) == len(trips), &quot;merge изменил число заявок&quot;
+assert joined[&quot;trip_id&quot;].is_unique, &quot;После merge размножились ID&quot;
+assert np.isclose(joined[&quot;fare_kzt&quot;].sum(), trips[&quot;fare_kzt&quot;].sum())
+print(&quot;Строки, ключи и сумма сохранены.&quot;)</code></pre><h4>Если осталось время: LEFT и INNER на одном примере</h4>
+<p><code>inner</code> оставляет только совпавшие ключи. Это полезно для некоторых задач, но здесь незаметно исключит заявку с неизвестной зоной. Сравним числа, а не внешний вид таблицы.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>inner_joined = trips.merge(zones, on=&quot;zone_id&quot;, how=&quot;inner&quot;, validate=&quot;many_to_one&quot;)
+print(&quot;Заявок в LEFT:&quot;, len(joined))
+print(&quot;Заявок в INNER:&quot;, len(inner_joined))
+print(&quot;Потерянная сумма, ₸:&quot;, joined[&quot;fare_kzt&quot;].sum() - inner_joined[&quot;fare_kzt&quot;].sum())</code></pre><h4>Если осталось время: почему нужен validate</h4>
+<p>Если у одного кода справа две записи, одна заявка превращается в две строки. Проверка должна остановить расчёт до того, как мы посчитаем завышенные суммы.</p>
+<p>Следующая ячейка намеренно портит <strong>отдельную копию</strong> справочника. Ожидаемая ошибка перехватывается, поэтому <code>Run All</code> продолжится. Учить <code>try/except</code> здесь не обязательно.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>bad_zones = pd.concat([zones, zones.iloc[[0]]], ignore_index=True)
+try:
+    trips.merge(bad_zones, on=&quot;zone_id&quot;, how=&quot;left&quot;, validate=&quot;many_to_one&quot;)
+except pd.errors.MergeError:
+    print(&quot;Проверка сработала: в правой таблице один zone_id встречается дважды.&quot;)</code></pre><div class="chapter-label">МИНИ-ЛАБОРАТОРИЯ / ЧТО СОХРАНЯЕТ JOIN</div><h3>Измените способ объединения</h3><p>Результаты заранее вычислены для того же снимка. Выбор показывает последствие, а не запускает Python.</p><label for="join-mode">Способ объединения: </label><select id="join-mode"><option value="left">LEFT: все заявки</option><option value="inner">INNER: только найденные зоны</option></select><div id="join-result" class="result" aria-live="polite"></div><p>Ни LEFT, ни INNER не «лучше всегда». Здесь задача сохранить все заявки, поэтому выбираем LEFT и явно помечаем неизвестную зону.</p></section>
+<section id="report"><span class="section-num">11</span><h2>Собираем отчёт по зонам</h2><h3>11. Собираем отчёт по зонам</h3>
+<p>Пользователь отчёта хочет знать:</p>
+<ul><li>сколько было заявок;</li><li>сколько завершилось поездкой;</li><li>какова доля отмен;</li><li>сколько составили оплаты;</li><li>какова типичная длительность известной выполненной поездки.</li></ul>
+<p>Сначала создадим флаги. Булево <code>True</code> при суммировании считается как 1.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>joined[&quot;is_completed&quot;] = joined[&quot;status&quot;] == &quot;completed&quot;
+joined[&quot;is_cancelled&quot;] = joined[&quot;status&quot;] == &quot;cancelled&quot;
+joined[[&quot;trip_id&quot;, &quot;status&quot;, &quot;is_completed&quot;, &quot;is_cancelled&quot;]].head()</code></pre><p>В нашей учебной схеме есть ровно два статуса, а у отменённых заявок сумма оплаты отсутствует. Проверим это перед отчётом. В настоящем сервисе могут быть возвраты, платные отмены и незавершённые заявки, тогда правило расчёта понадобится другое.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>assert set(joined[&quot;status&quot;].unique()) == {&quot;completed&quot;, &quot;cancelled&quot;}
+assert joined.loc[joined[&quot;is_cancelled&quot;], &quot;fare_kzt&quot;].isna().all()
+assert joined.loc[joined[&quot;is_completed&quot;], &quot;fare_kzt&quot;].notna().all()
+print(&quot;Правила учебной схемы подтверждены.&quot;)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>zone_report = joined.groupby(&quot;zone_report&quot;, as_index=False).agg(
+    requests=(&quot;trip_id&quot;, &quot;size&quot;),
+    completed_trips=(&quot;is_completed&quot;, &quot;sum&quot;),
+    cancelled_requests=(&quot;is_cancelled&quot;, &quot;sum&quot;),
+    payments_kzt=(&quot;fare_kzt&quot;, &quot;sum&quot;),
+    known_duration=(&quot;duration_min&quot;, &quot;count&quot;),
+    median_duration_min=(&quot;duration_min&quot;, &quot;median&quot;),
+)
+zone_report[&quot;cancel_pct&quot;] = zone_report[&quot;cancelled_requests&quot;] / zone_report[&quot;requests&quot;] * 100
+zone_report.round(1)</code></pre><p><code>as_index=False</code> оставляет название зоны обычным столбцом, что удобно для сохранения файла.</p>
+<p><strong>Знаменатели:</strong></p>
+<ul><li><code>cancel_pct</code>: отмены / все заявки этой зоны;</li><li><code>median_duration_min</code>: только известные длительности завершённых поездок;</li><li><code>payments_kzt</code>: сумма известных оплат, а не средняя цена и не прибыль.</li></ul>
+<p><code>sum()</code> пропускает отсутствующие значения. В наших данных у каждой завершённой поездки оплата известна, а у отменённых её нет. Поэтому это правило допустимо здесь; переносить его на другую таблицу без проверки нельзя.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>zone_report = zone_report.sort_values(&quot;requests&quot;, ascending=False)
+assert zone_report[&quot;requests&quot;].sum() == len(trips)
+assert zone_report[&quot;completed_trips&quot;].sum() == (trips[&quot;status&quot;] == &quot;completed&quot;).sum()
+assert np.isclose(zone_report[&quot;payments_kzt&quot;].sum(), completed[&quot;fare_kzt&quot;].sum())
+zone_report.round(1)</code></pre><h4>График с понятным ограничением</h4>
+<p>Покажем число заявок, а не назовём это «реальным спросом города». У нас только выдуманная выгрузка одного сервиса; поездок других сервисов и несделанных заявок в ней нет.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>ax = zone_report.plot.barh(x=&quot;zone_report&quot;, y=&quot;requests&quot;, legend=False, color=&quot;#0F766E&quot;)
+ax.invert_yaxis()
+ax.set_title(&quot;Заявки по зонам • синтетическая выгрузка&quot;)
+ax.set_xlabel(&quot;Количество уникальных заявок&quot;)
+ax.set_ylabel(&quot;&quot;)
+ax.grid(axis=&quot;x&quot;, alpha=0.2)
+plt.tight_layout()
+plt.show()</code></pre><p><strong>Попробуйте, 4 минуты:</strong> найдите зону с наибольшей долей отмен. Назовите одновременно процент и число заявок этой зоны. Почему 50% от 2 заявок и 50% от 100 заявок нельзя обсуждать одинаково уверенно?</p>
+<p>Эта таблица не доказывает, что район или канал <strong>вызывает</strong> отмену. Мы пока описываем записи, а не проверяем причины.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Ваш код здесь:
+# zone_report.sort_values(...)[[...]].head(1)</code></pre><div class="result"><strong>Проверьте итог:</strong> 6 строк отчёта, включая неизвестную зону. Сумма requests = 168. Сумма completed_trips = 139. Сумма payments_kzt = 308400. Больше всего заявок у «Жилого района»: 46. Это количество, не оценка качества.</div></section>
+<section id="export"><span class="section-num">12</span><h2>Сохранили. Прочитали. Сравнили.</h2><h3>12. Сохраняем CSV и JSON и читаем обратно</h3>
+<p>Отчёт полезен, когда его может открыть другой человек. Сохраним одинаковую небольшую таблицу в двух форматах.</p>
+<ul><li>CSV удобен для таблиц и Excel. <code>index=False</code> не добавляет служебный индекс отдельным столбцом.</li><li>JSON <code>orient=&quot;records&quot;</code> — список объектов, по объекту на строку отчёта.</li><li><code>force_ascii=False</code> оставляет кириллицу читаемой в текстовом JSON.</li></ul>
+<p>Исходные файлы не перезаписываем: всё отправляется в отдельную папку <code>output/</code> текущего запуска.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Округление — только для версии отчёта, исходные расчёты не меняем.
+report_to_save = zone_report.round({&quot;median_duration_min&quot;: 1, &quot;cancel_pct&quot;: 1})
+csv_path = OUTPUT_DIR / &quot;zone_report.csv&quot;
+json_path = OUTPUT_DIR / &quot;zone_report.json&quot;
+report_to_save.to_csv(csv_path, index=False, encoding=&quot;utf-8-sig&quot;)
+report_to_save.to_json(json_path, orient=&quot;records&quot;, force_ascii=False, indent=2)
+print(&quot;Сохранены:&quot;, csv_path.name, &quot;и&quot;, json_path.name)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>csv_back = pd.read_csv(csv_path)
+json_back = pd.read_json(json_path, orient=&quot;records&quot;)
+display(csv_back.head(3))
+display(json_back.head(3))</code></pre><p>CSV не сохраняет все типы pandas. JSON тоже может прочитать <code>100.0</code> как целое <code>100</code>. Поэтому в учебной проверке сравним столбцы, размер и значения, разрешив различие числовых типов.</p>
+<p>Это называется <strong>round-trip</strong>: записали → прочитали → убедились, что смысл не потерялся.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># У исходного отсортированного отчёта индекс мог быть не 0, 1, 2...
+expected = report_to_save.reset_index(drop=True)
+pd.testing.assert_frame_equal(expected, csv_back, check_dtype=False, atol=1e-8, rtol=1e-8)
+pd.testing.assert_frame_equal(expected, json_back, check_dtype=False, atol=1e-8, rtol=1e-8)
+print(&quot;CSV и JSON прочитаны без потерь значений.&quot;)</code></pre><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code># Ищите эту папку в файловой панели Jupyter/Colab.
+print(&quot;Результаты:&quot;, RUN_DIR.name + &quot;/output/&quot;)
+for file in OUTPUT_DIR.iterdir():
+    print(&quot;-&quot;, file.name, &quot;|&quot;, file.stat().st_size, &quot;байт&quot;)</code></pre><p><strong>В Colab:</strong> откройте панель Files слева, найдите показанную папку и скачайте <code>zone_report.csv</code> / <code>zone_report.json</code>. Диск временной сессии Colab может исчезнуть при её завершении, поэтому нужные результаты скачивайте заранее.</p>
+<p><strong>В Jupyter:</strong> файлы останутся в папке рядом с notebook. При следующем полном запуске создастся новая папка с другим окончанием.</p></section>
+<section id="conclusion"><span class="section-num">13</span><h2>Вывод вместо «всё посчиталось»</h2><h3>13. Финальный вывод: пять предложений вместо «всё посчиталось»</h3>
+<p>Хороший вывод отвечает на вопрос и называет ограничения. Сначала соберём опорные числа.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>total_requests = len(trips)
+completed_count = int((trips[&quot;status&quot;] == &quot;completed&quot;).sum())
+cancelled_count = int((trips[&quot;status&quot;] == &quot;cancelled&quot;).sum())
+total_payments = completed[&quot;fare_kzt&quot;].sum()
+print(&quot;Уникальных заявок:&quot;, total_requests)
+print(&quot;Завершено:&quot;, completed_count, &quot;| Отменено:&quot;, cancelled_count)
+print(&quot;Доля отмен, %:&quot;, round(cancelled_count / total_requests * 100, 1))
+print(&quot;Сумма оплат, ₸:&quot;, total_payments)
+print(&quot;Заявок без зоны в справочнике:&quot;, len(unmatched))</code></pre><p>Заполните шаблон своими числами:</p>
+<ol><li>«В исходной выгрузке __ строк; после удаления __ полных повторов осталось __ уникальных заявок».</li><li>«Завершено __ заявок, отменено __; доля отмен среди всех заявок равна __%».</li><li>«Самая большая группа по числу заявок — __: __ заявок. Это описание этой выгрузки».</li><li>«У __ завершённых поездок неизвестна длительность, поэтому сводка длительности описывает __ измерений».</li><li>«У __ заявки не нашлось зоны. LEFT JOIN сохранил её и сумму оплаты. Все данные синтетические, поэтому переносить выводы на реальный город нельзя».</li></ol>
+<p><strong>Связь с AI/DS:</strong> перед моделью прогноза отмен нам понадобятся дополнительные данные и отдельная проверка качества. Неизвестные зоны, повторы и неверные знаменатели способны испортить анализ ещё до выбора алгоритма.</p></section>
+<section id="practice"><span class="section-num">14</span><h2>Восемь задач: от чтения к объяснению</h2><p>Сначала своя попытка. Задачи 1–4 закрепляют первую встречу, 5–8 вторую. Сравнивайте не только синтаксис, но и строки, знаменатели и сохранённые суммы.</p><h4>Задача 1. Паспорт таблицы</h4>
+<p>Выведите число уникальных заявок, первые 4 строки только <code>trip_id</code>, <code>status</code>, <code>fare_kzt</code> и описательную статистику дистанции <strong>завершённых</strong> поездок.</p>
+<p><strong>Подсказка:</strong> <code>len</code>, выбор списка столбцов, <code>head</code>, <code>describe</code>.</p><details><summary>Показать возможное решение 1</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>print(&quot;Уникальных заявок:&quot;, len(trips))
+display(trips[[&quot;trip_id&quot;, &quot;status&quot;, &quot;fare_kzt&quot;]].head(4))
+display(completed[&quot;distance_km&quot;].describe().round(2))</code></pre></details><h4>Задача 2. Неизвестные измерения</h4>
+<p>Сколько завершённых поездок имеют неизвестную длительность? Какой это процент от <strong>всех завершённых поездок</strong>? Не подставляйте ноль.</p>
+<p><strong>Подсказка:</strong> <code>completed[&quot;duration_min&quot;].isna()</code>, <code>sum</code>, деление на <code>len(completed)</code>.</p><details><summary>Показать возможное решение 2</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>missing_count = completed[&quot;duration_min&quot;].isna().sum()
+missing_pct = missing_count / len(completed) * 100
+print(&quot;Неизвестных длительностей:&quot;, missing_count)
+print(&quot;Доля среди завершённых, %:&quot;, round(missing_pct, 2))</code></pre></details><h4>Задача 3. Два условия</h4>
+<p>Найдите завершённые поездки из <code>app</code> с дистанцией не меньше 8 км. Покажите ID, канал, дистанцию и стоимость. Отсортируйте по стоимости по убыванию.</p>
+<p><strong>Подсказка:</strong> Начните с <code>completed</code>, используйте <code>&amp;</code> и скобки.</p><details><summary>Показать возможное решение 3</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>answer3 = completed.loc[
+    (completed[&quot;channel&quot;] == &quot;app&quot;) &amp; (completed[&quot;distance_km&quot;] &gt;= 8),
+    [&quot;trip_id&quot;, &quot;channel&quot;, &quot;distance_km&quot;, &quot;fare_kzt&quot;],
+].sort_values(&quot;fare_kzt&quot;, ascending=False)
+print(&quot;Найдено:&quot;, len(answer3))
+answer3.head()</code></pre></details><h4>Задача 4. Типичная длительность</h4>
+<p>Для каждого канала, включая неизвестный, найдите число завершённых поездок, число известных длительностей и медианную длительность.</p>
+<p><strong>Подсказка:</strong> <code>groupby(..., dropna=False).agg(...)</code>; нужны и <code>size</code>, и <code>count</code>.</p><details><summary>Показать возможное решение 4</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>answer4 = completed.groupby(&quot;channel&quot;, dropna=False).agg(
+    trips=(&quot;trip_id&quot;, &quot;size&quot;),
+    known_duration=(&quot;duration_min&quot;, &quot;count&quot;),
+    median_duration_min=(&quot;duration_min&quot;, &quot;median&quot;),
+)
+answer4.round(1)</code></pre></details><h4>Задача 5. Проверка ключей</h4>
+<p>Выведите заявки, у которых зона не нашлась, и их суммарную оплату. Затем проверьте, что после LEFT JOIN заявок столько же, сколько до него.</p>
+<p><strong>Подсказка:</strong> <code>_merge == &quot;left_only&quot;</code>, <code>sum</code>, <code>assert</code>.</p><details><summary>Показать возможное решение 5</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>answer5 = joined.loc[joined[&quot;_merge&quot;] == &quot;left_only&quot;]
+display(answer5[[&quot;trip_id&quot;, &quot;zone_id&quot;, &quot;fare_kzt&quot;]])
+print(&quot;Сумма оплат без найденной зоны, ₸:&quot;, answer5[&quot;fare_kzt&quot;].sum())
+assert len(joined) == len(trips)</code></pre></details><h4>Задача 6. Суммы и количество</h4>
+<p>На <code>joined</code> отберите только завершённые поездки. Постройте сводку по <code>zone_report</code>: число поездок, сумма оплат, медианная стоимость. Убедитесь, что итоговая сумма совпадает с <code>completed[&quot;fare_kzt&quot;].sum()</code>.</p>
+<p><strong>Подсказка:</strong> <code>groupby</code>, <code>agg</code>, <code>np.isclose</code>.</p><details><summary>Показать возможное решение 6</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>answer6 = joined.loc[joined[&quot;status&quot;] == &quot;completed&quot;].groupby(
+    &quot;zone_report&quot;, as_index=False
+).agg(
+    completed_trips=(&quot;trip_id&quot;, &quot;size&quot;),
+    payments_kzt=(&quot;fare_kzt&quot;, &quot;sum&quot;),
+    median_fare_kzt=(&quot;fare_kzt&quot;, &quot;median&quot;),
+)
+assert np.isclose(answer6[&quot;payments_kzt&quot;].sum(), completed[&quot;fare_kzt&quot;].sum())
+answer6.sort_values(&quot;payments_kzt&quot;, ascending=False)</code></pre></details><h4>Задача 7. Ещё один файл</h4>
+<p>Сохраните сводку из задачи 6 как <code>completed_by_zone.csv</code> в <code>OUTPUT_DIR</code>, без индекса. Прочитайте её и сравните число строк, список столбцов и сумму оплат.</p>
+<p><strong>Подсказка:</strong> <code>to_csv(index=False)</code>, <code>pd.read_csv</code>; если задачу 6 пропустили, сначала выполните её.</p><details><summary>Показать возможное решение 7</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>answer7_path = OUTPUT_DIR / &quot;completed_by_zone.csv&quot;
+answer6.to_csv(answer7_path, index=False, encoding=&quot;utf-8-sig&quot;)
+answer7_back = pd.read_csv(answer7_path)
+assert len(answer7_back) == len(answer6)
+assert answer7_back.columns.tolist() == answer6.columns.tolist()
+assert np.isclose(answer7_back[&quot;payments_kzt&quot;].sum(), answer6[&quot;payments_kzt&quot;].sum())
+print(&quot;Сохранён и проверен&quot;, answer7_path.name)</code></pre></details><h4>Задача 8. Объяснение для команды</h4>
+<p>Напишите 4 предложения: что чаще встречается, какую метрику считали, какая проблема данных найдена, чего по этой таблице нельзя утверждать. Включите хотя бы одну конкретную цифру и её знаменатель.</p>
+<p><strong>Подсказка:</strong> Не используйте «доказали причину», «лучший район», «реальная статистика города».</p><details><summary>Показать возможное решение 8</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>top_channel = trips[&quot;channel&quot;].fillna(&quot;unknown&quot;).value_counts().index[0]
+top_count = int(trips[&quot;channel&quot;].fillna(&quot;unknown&quot;).value_counts().iloc[0])
+print(f&quot;В учебной выгрузке канал {top_channel} встречается в {top_count} из {len(trips)} заявок.&quot;)
+print(f&quot;Доля отмен среди всех заявок — {cancelled_count / len(trips):.1%}.&quot;)
+print(f&quot;После LEFT JOIN {len(unmatched)} заявка не получила название зоны, но сохранилась в отчёте.&quot;)
+print(&quot;По синтетической выгрузке нельзя оценивать реальный трафик или причины отмен в городе.&quot;)</code></pre></details></section>
+<section id="bonus"><span class="section-num">15</span><h2>Следующий шаг: время и сводная таблица</h2><h3>16. Бонус: время, сводная таблица и ещё один график</h3>
+<p><strong>Не обязателен для двух занятий.</strong> Это следующий маленький шаг, если основной маршрут уже понятен.</p>
+<p><code>pivot_table</code> — сводка сразу по двум категориям: зоны по строкам, статусы по столбцам. Заполнение нулём уместно для <strong>числа заявок</strong> в отсутствующей комбинации внутри этой фиксированной выгрузки. Это не разрешение заменять нулём неизвестную длительность.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>status_pivot = joined.pivot_table(
+    index=&quot;zone_report&quot;, columns=&quot;status&quot;, values=&quot;trip_id&quot;,
+    aggfunc=&quot;size&quot;, fill_value=0,
+)
+status_pivot</code></pre><h4>Сколько заявок в каждый час?</h4>
+<p>Группируем по часу создания заявки. Это смешивает разные дни: точка «8» включает заявки в 08:00–08:59 за весь учебный период.</p>
+<p>Генератор специально распределил заявки регулярно: в данных <strong>нет естественного городского суточного профиля</strong>. Ровный график — свойство учебной конструкции, не открытие о городе. Для поиска реальных пиков потребовались бы реальные наблюдения и проверка полноты выгрузки.</p><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>requests_by_hour = trips.groupby(&quot;request_hour&quot;).size()
+ax = requests_by_hour.plot(marker=&quot;o&quot;, color=&quot;#7C3AED&quot;)
+ax.set_title(&quot;Заявки по часу создания • синтетическая конструкция&quot;)
+ax.set_xlabel(&quot;Час, все дни вместе&quot;)
+ax.set_ylabel(&quot;Количество уникальных заявок&quot;)
+ax.set_xticks(requests_by_hour.index)
+ax.set_ylim(bottom=0)
+ax.grid(alpha=0.2)
+plt.tight_layout()
+plt.show()</code></pre><h4>Мини-проект на 15–20 минут</h4>
+<p>Сравните заявки, созданные <strong>до 12:00</strong>, с заявками <strong>с 12:00</strong>.</p>
+<ol><li>Создайте признак <code>period</code> на копии <code>joined</code> (подсказка: <code>np.where</code>).</li><li>Для каждой группы найдите число заявок, число отмен и долю отмен.</li><li>Убедитесь, что общее число заявок сохранилось.</li><li>Напишите два предложения, не объясняя различия выдуманными причинами.</li></ol>
+<p>Пример результата может быть любым по форме, но должен содержать размер каждой группы и знаменатель доли. Решение ниже — для самопроверки.</p><details><summary>Решение мини-проекта: до и после 12:00</summary><div class="code-head"><span>PYTHON / ЗАПУСКАЙТЕ ПО ПОРЯДКУ В NOTEBOOK</span><button class="copy" type="button">Скопировать</button></div><pre><code>bonus = joined.copy()
+bonus[&quot;period&quot;] = np.where(bonus[&quot;request_hour&quot;] &lt; 12, &quot;До 12:00&quot;, &quot;С 12:00&quot;)
+bonus_report = bonus.groupby(&quot;period&quot;).agg(
+    requests=(&quot;trip_id&quot;, &quot;size&quot;), cancellations=(&quot;is_cancelled&quot;, &quot;sum&quot;)
+)
+bonus_report[&quot;cancel_pct&quot;] = bonus_report[&quot;cancellations&quot;] / bonus_report[&quot;requests&quot;] * 100
+assert bonus_report[&quot;requests&quot;].sum() == len(trips)
+bonus_report.round(1)</code></pre></details></section>
+<section id="check"><span class="section-num"></span><h2>Объясните без подсказки</h2><div class="study-check"><label><input type="checkbox">Могу объяснить разницу между заявкой и поездкой.</label><label><input type="checkbox">Сначала показываю повторы, затем удаляю только доказанные полные копии.</label><label><input type="checkbox">Отличаю loc по метке от iloc по позиции.</label><label><input type="checkbox">Пишу условия со скобками и & вместо and.</label><label><input type="checkbox">Понимаю, что size считает строки, count заполненные значения.</label><label><input type="checkbox">Для каждой доли называю знаменатель.</label><label><input type="checkbox">Проверяю уникальность ключа справочника перед merge.</label><label><input type="checkbox">После merge проверяю ID, число строк и сумму.</label><label><input type="checkbox">Сохраняю index=False и читаю отчёт обратно.</label><label><input type="checkbox">Не называю синтетические данные статистикой города.</label></div><p class="muted">Отметки служат самопроверкой на этой странице и не отправляются преподавателю.</p><details><summary>Почему нельзя заполнить все пропуски нулём?</summary><p>Ноль длительности означал бы мгновенную поездку. У отмены поездки не было, а у двух завершённых потеряно измерение. Заполнение смешает эти ситуации и исказит медиану и среднее.</p></details><details><summary>Почему после merge количество строк может вырасти?</summary><p>Если один zone_id повторяется справа, для одной заявки найдётся несколько пар. validate="many_to_one" останавливает такое объединение. Нельзя удалять проверку, чтобы спрятать ошибку.</p></details><details><summary>Почему app 116 не значит «приложение лучше»?</summary><p>Число заявок описывает размер группы. Для качества понадобятся определение метрики, сопоставимые группы и другие данные. Здесь больше заявок не доказывает причин.</p></details></section>
+<section id="resources"><span class="section-num"></span><h2>Материалы и происхождение</h2><p>Страница основана на последней студенческой практике Week 03, добавленной 9 ноября 2026, commit <a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/commit/ac07f4b46e56fb92a0102d0d0fc5118068f5b1a5">ac07f4b</a>. Данные и проверочные числа совпадают с её фиксированным снимком.</p><div class="links"><a href="Week_03_City_Trips_Pandas.ipynb" download>↓ Скачать полный notebook</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_03_pandas_files/practice/Week_03_City_Trips_Pandas.ipynb">Практика на GitHub ↗</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_03_pandas_files/homework/Homework_Week_03_Kaggle_Project.md">Актуальная домашняя работа ↗</a><a href="https://colab.research.google.com/github/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_03_pandas_files/practice/Week_03_City_Trips_Pandas.ipynb">Открыть в Google Colab ↗</a><a href="../week02/">← Week 02: Titanic</a><a href="../week04/">Week 04: Visual EDA →</a><a href="../course/">Все недели курса</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_03_pandas_files/README.md">План недели ↗</a></div><h3>Источники, происхождение и воспроизводимость</h3>
+<ul><li>Практика продолжает <a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_02_python_numpy/practice/02_titanic_pandas_numpy_descriptive_practice.ipynb">Titanic Week 02</a> и соответствует <a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_03_pandas_files/README.md">плану Week 03</a>.</li><li><code>trips.csv</code> и <code>zones.json</code> созданы специально для этого практикума. Люди, районы и поездки не представляют реальных субъектов. Никаких персональных данных в наборе нет.</li><li>7 условных дней: 5–11 октября 2026; 24 заявки в день, 168 уникальных ID. Копии двух строк добавлены специально для проверки качества.</li><li>Фиксированный снимок данных встроен в notebook: повторный запуск не генерирует новую случайную выборку. Имена рабочих папок меняются, содержимое учебных данных — нет.</li><li>Пропуски, неизвестная зона и повторы — запланированные учебные ситуации. Это не оценка качества данных какого-либо действующего сервиса.</li><li>Проверенная среда: Python 3.12, pandas 2.2.3, NumPy 2.1.3, matplotlib 3.9.2. В других версиях оформление вывода может немного отличаться.</li></ul>
+<p>Документация:</p>
+<ul><li><a href="https://pandas.pydata.org/docs/getting_started/intro_tutorials/index.html">pandas: вводные учебники</a></li><li><a href="https://pandas.pydata.org/docs/user_guide/indexing.html">Выбор строк и столбцов</a></li><li><a href="https://pandas.pydata.org/docs/user_guide/groupby.html">GroupBy</a></li><li><a href="https://pandas.pydata.org/docs/user_guide/merging.html">Объединение таблиц</a></li><li><a href="https://pandas.pydata.org/docs/user_guide/io.html">CSV и JSON</a></li></ul>
+<p><strong>Главная мысль недели:</strong> сначала поймите и проверьте данные, затем считайте и объясняйте. Сложность анализа определяется не длиной команды, а тем, насколько верно она отвечает на вопрос.</p></section>
+<footer>BrainCode Academy · Tech Orda · Асылбек Ғизатов<br>Week 03 / Pandas & Files · Учебный материал. Синтетические данные.</footer></main></div><script src="app.js"></script></body></html>

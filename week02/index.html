@@ -1,0 +1,223 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><meta name="description" content="Week 02 · Titanic · pandas · NumPy. BrainCode Academy, Tech Orda: объяснения, код, схемы, практика и самопроверка."><title>Week 02 · Titanic · pandas · NumPy — BrainCode Academy</title><link rel="stylesheet" href="/course/style.css"></head><body><a class="skip" href="#top">К содержанию</a><div id="progress"></div><header><a href="/course/" class="brand">BRAINCODE<span> / FIELD NOTES</span></a><a class="download" href="Titanic_Week02.ipynb">↓ Notebook</a></header><div class="shell"><aside><small>ML & AI / TECH ORDA</small><nav aria-label="Содержание"><a href="/course/">← Каталог недель</a><a href="#top">Обзор недели</a><a href="#bridge">Ключевые идеи</a><a href="#lab">Интерактивная лаборатория</a><a href="#chapter-0">1. Подготовка и загрузка</a><a href="#chapter-1">2. Первая описательная статистика</a><a href="#chapter-2">3. Выбираем строки и столбцы</a><a href="#chapter-3">4. Пропуски: считаем до любых изменений</a><a href="#chapter-4">5. Частоты и доли категорий</a><a href="#chapter-5">6. Простые фильтры</a><a href="#chapter-6">7. Новые признаки без изменения исходника</a><a href="#chapter-7">8. Группировки и таблицы частот</a><a href="#chapter-8">9. NumPy: от маленького массива к столбцу таблицы</a><a href="#chapter-9">10. Два простых графика</a><a href="#chapter-10">11. Самостоятельная практика — сначала без решений</a><a href="#chapter-11">12. Решения — открывайте после своей попытки</a><a href="#chapter-12">13. Чек-лист закрепления</a><a href="#resources">Материалы</a></nav><p>Асылбек Ғизатов<br>BrainCode Academy<br>Machine Learning & AI</p><button id="theme">Светлая тема</button><button onclick="window.print()">Печать / PDF</button></aside><main><div id="top" class="hero"><div class="eyebrow">TECH ORDA / LEARNING PAPER 02</div><h1>От первых строк<br>к <em>пониманию данных.</em></h1><p class="lead">Учимся читать таблицу, выбирать наблюдения и объяснять числа. Не строим модель: сначала понимаем данные.</p><div class="flow"><div><strong>01</strong><span>Прочитать таблицу</span></div><div><strong>02</strong><span>Проверить и выбрать</span></div><div><strong>03</strong><span>Объяснить результат</span></div></div><div class="callout">Titanic здесь — конкретный учебный набор записей, не полный список пассажиров. Различия групп описывают данные, но сами по себе не доказывают причину.</div></div><section id="bridge"><div class="eyebrow">ОПОРА ПЕРЕД ПРАКТИКОЙ</div><h2>Число имеет смысл<br>только вместе с вопросом.</h2><div class="two"><div><h3>Таблица и массив</h3><p>pandas хранит значения вместе с названиями столбцов и индексом. NumPy работает с массивами: поэлементные вычисления заменяют ручной обход чисел.</p></div><div><h3>Наблюдение и показатель</h3><p>Одна строка — один пассажир из набора. Среднее возраста полезно; среднее PassengerId не описывает людей. Числовой тип хранения не делает ID измерением.</p></div></div><div class="formula" role="math">Среднее: x̄ = Σxᵢ / n<br>Доля пропусков: m / N × 100%<br>Доля единиц в 0/1: Σyᵢ / N</div><p>В среднем возраста n — число известных возрастов. В проценте пропусков N — все строки. Перед расчётом назовите знаменатель.</p><h3>Почему pandas и NumPy могут дать разные числа?</h3><p>pandas mean пропускает NaN; np.mean распространяет NaN. Для сравнения используйте np.nanmean. У стандартного отклонения pandas по умолчанию ddof=1, у NumPy ddof=0.</p><div class="formula" role="math">s = √( Σ(xᵢ − x̄)² / (n − 1) )</div><p>Для [10, 20, 30] среднее и медиана равны 20, выборочная std — 10. В NumPy передайте ddof=1 для того же результата.</p></section><section id="lab"><div class="eyebrow">INTERACTIVE LAB / БУЛЕВА МАСКА</div><h2>Как условие выбирает строки</h2><p>Отдельный демонстрационный массив возрастов: [12, 17, 18, 25, NaN, 40]. Это не статистика Titanic. Меняйте границу и предскажите маску до проверки.</p><label for="limit">Возраст строго меньше <strong id="limit-value">18</strong></label><div class="lab-controls"><input id="limit" type="range" min="10" max="45" value="18"></div><pre id="mask"></pre><p class="lab-result" id="filter-result" aria-live="polite"></p><p>Неизвестный возраст нельзя автоматически отнести ни к детям, ни к взрослым. Граница строгая: при пороге 18 возраст 18 не попадёт в отбор.</p></section><section class="notebook-chapter" id="chapter-0"><span class="section-num">NOTEBOOK / 01</span><div class="cell"><h2>1. Подготовка и загрузка</h2>
+<p>Нужны <code>pandas</code>, <code>numpy</code>, <code>matplotlib</code> и Jupyter/Colab; установка описана в <a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/SETUP.md">SETUP.md</a>. Запускайте ячейки сверху вниз (<code>Shift+Enter</code>). Для загрузки CSV нужен интернет. Если загрузка не удалась, проверьте соединение и повторите эту ячейку.</p>
+<p>Ноутбук сохранён без результатов. Для проверки своей работы используйте <strong>Restart Kernel → Run All</strong>. Учебные TODO не ломают общий запуск: они оставлены комментариями.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Короткие имена библиотек — общепринятое соглашение.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import display</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Одна строка таблицы — один пассажир в этом наборе данных.
+df = pd.read_csv(&#x27;https://raw.githubusercontent.com/jorisvandenbossche/pandas-tutorial/master/data/titanic.csv&#x27;)
+df.head()</code></pre></div><div class="cell"><h3>Что означают столбцы</h3>
+<p>Источник: <a href="https://github.com/jorisvandenbossche/pandas-tutorial/blob/master/data/titanic.csv">CSV из pandas-tutorial</a>. Это конкретный набор записей, а не полный список всех находившихся на корабле.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PassengerId</code>, <code>Name</code></td>
+<td>Идентификатор и имя пассажира</td>
+</tr>
+<tr>
+<td><code>Survived</code></td>
+<td>1 — выжил, 0 — не выжил</td>
+</tr>
+<tr>
+<td><code>Pclass</code></td>
+<td>Класс билета: 1, 2 или 3; это категория, а не измерение</td>
+</tr>
+<tr>
+<td><code>Sex</code>, <code>Age</code></td>
+<td>Пол в исходной записи и возраст в годах</td>
+</tr>
+<tr>
+<td><code>SibSp</code>, <code>Parch</code></td>
+<td>Число братьев/сестёр/супругов и родителей/детей на борту</td>
+</tr>
+<tr>
+<td><code>Ticket</code>, <code>Fare</code>, <code>Cabin</code></td>
+<td>Номер билета, записанная стоимость, каюта</td>
+</tr>
+<tr>
+<td><code>Embarked</code></td>
+<td>Порт посадки: C — Cherbourg, Q — Queenstown, S — Southampton</td>
+</tr>
+</tbody>
+</table></div>
+<p>Регистр важен: <code>Age</code> и <code>age</code> — разные имена. Пустое значение означает отсутствие информации, а не ноль.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Последние строки помогают увидеть конец таблицы.
+df.tail(5)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Фиксируем random_state: при повторении получим те же строки.
+df.sample(5, random_state=42)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># shape возвращает пару: количество строк, количество столбцов.
+print(&quot;Строк:&quot;, df.shape[0])
+print(&quot;Столбцов:&quot;, df.shape[1])</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Список названий удобно использовать при выборе колонок.
+df.columns.tolist()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Тип хранения не всегда совпадает со смыслом признака.
+df.dtypes</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># info печатает типы и количество заполненных значений.
+# Не оборачиваем в print: метод сам выводит информацию.
+df.info()</code></pre></div><div class="cell"><p><strong>Остановитесь и ответьте:</strong> сколько наблюдений в таблице? В каких колонках заполнены не все строки? Почему среднее значение <code>PassengerId</code> не описывает пассажиров содержательно?</p></div></section><section class="notebook-chapter" id="chapter-1"><span class="section-num">NOTEBOOK / 02</span><div class="cell"><h2>2. Первая описательная статистика</h2>
+<p><code>count</code> — число известных значений; <code>mean</code> — среднее; <code>std</code> — стандартное отклонение; <code>min</code>/<code>max</code> — границы. <code>25%</code>, <code>50%</code>, <code>75%</code> — квартиль, медиана и квартиль: они помогают описать расположение значений.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># По умолчанию describe описывает числовые столбцы.
+df.describe().round(2)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Выбираем измеряемые величины, а не числовые идентификаторы.
+df[[&quot;Age&quot;, &quot;Fare&quot;, &quot;SibSp&quot;, &quot;Parch&quot;]].describe().round(2)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># unique — число разных значений; top — самое частое; freq — его частота.
+df[[&quot;Sex&quot;, &quot;Embarked&quot;, &quot;Cabin&quot;]].describe()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Среднее и медиана отвечают на разные вопросы о центре распределения.
+print(&quot;Средний возраст:&quot;, round(df[&quot;Age&quot;].mean(), 2))
+print(&quot;Медианный возраст:&quot;, df[&quot;Age&quot;].median())
+print(&quot;Минимум и максимум:&quot;, df[&quot;Age&quot;].min(), df[&quot;Age&quot;].max())</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Квантили стоимости: 50% наблюдений не превышают медиану.
+df[&quot;Fare&quot;].quantile([0.25, 0.5, 0.75, 0.9]).round(2)</code></pre></div><div class="cell"><p><strong>Проверьте понимание:</strong> сравните среднюю и медианную стоимость. Если они различаются, не объявляйте большие значения ошибками: сначала посмотрите на данные. pandas пропускает отсутствующие значения при этих расчётах; число наблюдений для возраста и стоимости может различаться.</p></div></section><section class="notebook-chapter" id="chapter-2"><span class="section-num">NOTEBOOK / 03</span><div class="cell"><h2>3. Выбираем строки и столбцы</h2>
+<p><code>Series</code> — один столбец с индексом; <code>DataFrame</code> — таблица. <code>loc</code> выбирает по меткам, <code>iloc</code> — по позициям с нуля. В <code>loc[0:4]</code> правая метка включается, в <code>iloc[0:4]</code> позиция 4 не включается.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Одна пара скобок возвращает Series.
+ages = df[&quot;Age&quot;]
+print(type(ages))
+ages.head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Список колонок внутри скобок возвращает DataFrame.
+passenger_view = df[[&quot;Name&quot;, &quot;Age&quot;, &quot;Sex&quot;, &quot;Pclass&quot;]]
+passenger_view.head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># В исходной таблице метки индекса начинаются с 0.
+df.loc[0:4, [&quot;Name&quot;, &quot;Age&quot;, &quot;Fare&quot;]]</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Берём первые четыре строки и первые три столбца по позициям.
+df.iloc[0:4, 0:3]</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Исходный df не меняется: сортировка возвращает новую таблицу.
+df.sort_values(&quot;Fare&quot;, ascending=False)[[&quot;Name&quot;, &quot;Pclass&quot;, &quot;Fare&quot;]].head(10)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Сначала класс по возрастанию, внутри класса — возраст по убыванию.
+df.sort_values([&quot;Pclass&quot;, &quot;Age&quot;], ascending=[True, False])[
+    [&quot;Name&quot;, &quot;Pclass&quot;, &quot;Age&quot;]
+].head(10)</code></pre></div></section><section class="notebook-chapter" id="chapter-3"><span class="section-num">NOTEBOOK / 04</span><div class="cell"><h2>4. Пропуски: считаем до любых изменений</h2>
+<p><code>isna()</code> создаёт таблицу из <code>True</code>/<code>False</code>. При суммировании <code>True</code> считается как 1. Не будем удалять все строки с пропусками: отсутствие каюты не мешает посчитать пассажиров по классу.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Количество пропусков по каждому столбцу.
+missing_count = df.isna().sum()
+missing_count.sort_values(ascending=False)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Доля пропусков имеет знаменатель: все строки таблицы.
+missing_summary = pd.DataFrame({
+    &quot;missing_count&quot;: missing_count,
+    &quot;missing_percent&quot;: missing_count / len(df) * 100,
+})
+missing_summary.sort_values(&quot;missing_count&quot;, ascending=False).round(1)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Посмотрим на записи с неизвестным возрастом, не меняя df.
+df.loc[df[&quot;Age&quot;].isna(), [&quot;Name&quot;, &quot;Age&quot;, &quot;Pclass&quot;]].head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Только отдельная Series без пропусков — для расчётов возраста.
+known_ages = df[&quot;Age&quot;].dropna()
+print(&quot;Всего пассажиров:&quot;, len(df))
+print(&quot;Возраст известен:&quot;, known_ages.count())</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Пример заполнения в отдельной переменной, а не в исходной колонке.
+age_filled_example = df[&quot;Age&quot;].fillna(df[&quot;Age&quot;].median())
+print(&quot;Пропусков в примере:&quot;, age_filled_example.isna().sum())
+print(&quot;Пропусков в исходном Age:&quot;, df[&quot;Age&quot;].isna().sum())</code></pre></div><div class="cell"><p>Заполнение медианой — технический приём, <strong>не восстановление истинного возраста</strong>. Оно меняет распределение. Дальше описываем исходные известные возраста, а <code>age_filled_example</code> не используем. Заполнять возраст нулём означало бы ошибочно добавить младенцев.</p></div></section><section class="notebook-chapter" id="chapter-4"><span class="section-num">NOTEBOOK / 05</span><div class="cell"><h2>5. Частоты и доли категорий</h2>
+<p>Сначала считаем количество, затем долю. Всегда называйте знаменатель: все пассажиры, только известные значения или конкретная группа.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># sort_index упорядочивает классы как 1, 2, 3.
+class_counts = df[&quot;Pclass&quot;].value_counts().sort_index()
+class_counts</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># normalize=True переводит количества в доли; умножение на 100 — в проценты.
+(df[&quot;Sex&quot;].value_counts(normalize=True) * 100).round(1)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># По умолчанию value_counts исключает пропуски; здесь показываем их явно.
+df[&quot;Embarked&quot;].value_counts(dropna=False)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Для кода 0/1 среднее равно доле единиц.
+print(&quot;Количество по исходам:&quot;)
+display(df[&quot;Survived&quot;].value_counts().sort_index())
+print(&quot;Доля выживших в этом наборе, %:&quot;, round(df[&quot;Survived&quot;].mean() * 100, 1))</code></pre></div></section><section class="notebook-chapter" id="chapter-5"><span class="section-num">NOTEBOOK / 06</span><div class="cell"><h2>6. Простые фильтры</h2>
+<p>Условие создаёт булеву маску — по одному <code>True</code>/<code>False</code> на строку. Для нескольких условий используем <code>&amp;</code> (И), <code>|</code> (ИЛИ) и скобки вокруг каждого условия. Python <code>and</code>/<code>or</code> здесь не подходят.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Сначала рассмотрим саму маску.
+is_first_class = df[&quot;Pclass&quot;] == 1
+is_first_class.head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Оставляем строки, где условие истинно.
+first_class = df.loc[is_first_class, [&quot;Name&quot;, &quot;Age&quot;, &quot;Fare&quot;]]
+print(&quot;Пассажиров первого класса:&quot;, len(first_class))
+first_class.head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Неизвестный возраст не позволяет отнести человека к детям.
+children = df.loc[df[&quot;Age&quot;].notna() &amp; (df[&quot;Age&quot;] &lt; 18)]
+children[[&quot;Name&quot;, &quot;Age&quot;, &quot;Pclass&quot;]].head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Оба условия должны выполняться одновременно.
+adult_women = df.loc[(df[&quot;Sex&quot;] == &quot;female&quot;) &amp; (df[&quot;Age&quot;] &gt;= 18)]
+print(&quot;Совершеннолетних женщин с известным возрастом:&quot;, len(adult_women))
+adult_women[[&quot;Name&quot;, &quot;Sex&quot;, &quot;Age&quot;]].head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># isin — короткая запись условия «одно из перечисленных значений».
+df.loc[df[&quot;Embarked&quot;].isin([&quot;C&quot;, &quot;Q&quot;]), [&quot;Name&quot;, &quot;Embarked&quot;]].head()</code></pre></div></section><section class="notebook-chapter" id="chapter-6"><span class="section-num">NOTEBOOK / 07</span><div class="cell"><h2>7. Новые признаки без изменения исходника</h2>
+<p>Сделаем копию для учебных колонок. <code>FamilySize</code> — пассажир плюс указанные родственники, а не доказанный размер семьи во всём датасете. <code>IsAlone</code> означает отсутствие родственников именно по полям <code>SibSp</code> и <code>Parch</code>.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># df оставляем в том виде, в котором загрузили.
+analysis_df = df.copy()
+analysis_df[&quot;FamilySize&quot;] = analysis_df[&quot;SibSp&quot;] + analysis_df[&quot;Parch&quot;] + 1
+analysis_df[[&quot;SibSp&quot;, &quot;Parch&quot;, &quot;FamilySize&quot;]].head()</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Операция сравнения применяется сразу ко всем строкам.
+analysis_df[&quot;IsAlone&quot;] = analysis_df[&quot;FamilySize&quot;] == 1
+analysis_df[&quot;IsAlone&quot;].value_counts()</code></pre></div></section><section class="notebook-chapter" id="chapter-7"><span class="section-num">NOTEBOOK / 08</span><div class="cell"><h2>8. Группировки и таблицы частот</h2>
+<p><code>groupby</code> делит строки на группы, затем выполняет расчёт внутри каждой. <code>size()</code> считает строки; <code>count()</code> — заполненные значения выбранного столбца. Это особенно важно для возраста.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Сколько пассажиров и сколько известных возрастов в каждом классе?
+class_sizes = df.groupby(&quot;Pclass&quot;).size()
+class_age_counts = df.groupby(&quot;Pclass&quot;)[&quot;Age&quot;].count()
+pd.DataFrame({&quot;passengers&quot;: class_sizes, &quot;known_ages&quot;: class_age_counts})</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Простое сравнение средних возрастов по классам.
+df.groupby(&quot;Pclass&quot;)[&quot;Age&quot;].mean().round(1)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># agg собирает несколько понятных показателей в одной таблице.
+fare_by_class = df.groupby(&quot;Pclass&quot;)[&quot;Fare&quot;].agg([&quot;count&quot;, &quot;mean&quot;, &quot;median&quot;, &quot;min&quot;, &quot;max&quot;])
+fare_by_class.round(2)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Среднее 0/1 внутри группы — доля выживших в этой группе.
+survival_by_class = df.groupby(&quot;Pclass&quot;)[&quot;Survived&quot;].agg([&quot;count&quot;, &quot;mean&quot;])
+survival_by_class[&quot;survived_percent&quot;] = survival_by_class[&quot;mean&quot;] * 100
+survival_by_class[[&quot;count&quot;, &quot;survived_percent&quot;]].round(1)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Таблица сопряжённости считает сочетания двух категорий.
+sex_class_counts = pd.crosstab(df[&quot;Sex&quot;], df[&quot;Pclass&quot;])
+sex_class_counts</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># normalize=&quot;index&quot;: каждая строка имеет свой знаменатель и даёт 100%.
+(pd.crosstab(df[&quot;Sex&quot;], df[&quot;Pclass&quot;], normalize=&quot;index&quot;) * 100).round(1)</code></pre></div><div class="cell"><p><strong>Выводы без лишних обещаний:</strong> описывайте различия «в этом наборе записей». Различие долей между классами само по себе не доказывает причинность. Для среднего возраста всегда учитывайте пропуски, для доли — размер группы.</p></div></section><section class="notebook-chapter" id="chapter-8"><span class="section-num">NOTEBOOK / 09</span><div class="cell"><h2>9. NumPy: от маленького массива к столбцу таблицы</h2>
+<p>NumPy хранит массивы и выполняет вычисления над всеми элементами сразу. У массива нет названий колонок и индекса pandas. Начнём с небольших чисел, затем перейдём к возрастам из Titanic.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Учебный массив: здесь все значения известны.
+numbers = np.array([10, 20, 30, 40], dtype=float)
+print(numbers)
+print(&quot;Форма:&quot;, numbers.shape, &quot;Размерность:&quot;, numbers.ndim, &quot;Тип:&quot;, numbers.dtype)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Индексация и срезы начинаются с нуля, правая граница не включается.
+print(&quot;Первый элемент:&quot;, numbers[0])
+print(&quot;Первые три:&quot;, numbers[:3])
+print(&quot;Больше 20:&quot;, numbers[numbers &gt; 20])</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Агрегаты превращают несколько чисел в один показатель.
+print(&quot;Сумма:&quot;, np.sum(numbers))
+print(&quot;Среднее:&quot;, np.mean(numbers))
+print(&quot;Медиана:&quot;, np.median(numbers))
+print(&quot;Минимум / максимум:&quot;, np.min(numbers), np.max(numbers))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Векторная операция: прибавляем 5 к каждому элементу без цикла.
+print(&quot;Плюс 5:&quot;, numbers + 5)
+print(&quot;Удвоение:&quot;, numbers * 2)
+print(&quot;Исходный массив:&quot;, numbers)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># to_numpy берёт значения Series без подписей индекса.
+ages_array = df[&quot;Age&quot;].to_numpy()
+print(&quot;Форма массива:&quot;, ages_array.shape)
+print(&quot;Первые 10 возрастов:&quot;, ages_array[:10])</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># np.mean не пропускает nan автоматически — результат тоже nan.
+print(&quot;Обычное среднее NumPy:&quot;, np.mean(ages_array))
+print(&quot;Количество nan:&quot;, np.isnan(ages_array).sum())</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># nan-функции явно исключают неизвестные значения из расчёта.
+print(&quot;Средний возраст:&quot;, round(np.nanmean(ages_array), 2))
+print(&quot;Медианный возраст:&quot;, np.nanmedian(ages_array))
+print(&quot;Среднее pandas:&quot;, round(df[&quot;Age&quot;].mean(), 2))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># ~ переворачивает маску: оставляем только известные возраста.
+valid_ages_array = ages_array[~np.isnan(ages_array)]
+print(&quot;Известных возрастов:&quot;, valid_ages_array.size)
+print(&quot;25%, 50%, 75%:&quot;, np.quantile(valid_ages_array, [0.25, 0.5, 0.75]))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Для сопоставления std укажем одинаковый ddof=1.
+print(&quot;pandas std:&quot;, df[&quot;Age&quot;].std())
+print(&quot;NumPy std:&quot;, np.nanstd(ages_array, ddof=1))
+print(&quot;Средние совпадают:&quot;, np.isclose(df[&quot;Age&quot;].mean(), np.nanmean(ages_array)))</code></pre></div><div class="cell"><p>У NumPy <code>std</code> по умолчанию <code>ddof=0</code>, у pandas — <code>ddof=1</code>: знаменатели соответственно <code>n</code> и <code>n−1</code>. Поэтому сравнивать результаты надо с одинаковыми настройками. <code>nan</code>-функции удобны, но не заменяют отчёт о числе пропусков.</p></div></section><section class="notebook-chapter" id="chapter-9"><span class="section-num">NOTEBOOK / 10</span><div class="cell"><h2>10. Два простых графика</h2>
+<p>Гистограмма отвечает «как распределена числовая величина?», столбчатая диаграмма — «сколько записей в каждой категории?». Подпишем оси; пропущенные возраста на гистограмму не попадут.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Гистограмма только известных возрастов; высота — число наблюдений.
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.hist(df[&quot;Age&quot;].dropna(), bins=16, color=&quot;steelblue&quot;, edgecolor=&quot;white&quot;)
+ax.set_title(&quot;Распределение известных возрастов пассажиров&quot;)
+ax.set_xlabel(&quot;Возраст, лет&quot;)
+ax.set_ylabel(&quot;Количество пассажиров&quot;)
+plt.tight_layout()
+plt.show()</code></pre></div><figure><img src="assets/cell-67.svg" alt="График из ячейки 67 учебной практики" loading="lazy"><figcaption>Результат выполнения кода выше на исходном учебном наборе.</figcaption></figure><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Для категорий используем столбцы, а не гистограмму.
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.bar(class_counts.index.astype(str), class_counts.values, color=&quot;teal&quot;)
+ax.set_title(&quot;Пассажиры по классу билета в этом наборе&quot;)
+ax.set_xlabel(&quot;Класс билета&quot;)
+ax.set_ylabel(&quot;Количество пассажиров&quot;)
+plt.tight_layout()
+plt.show()</code></pre></div><figure><img src="assets/cell-68.svg" alt="График из ячейки 68 учебной практики" loading="lazy"><figcaption>Результат выполнения кода выше на исходном учебном наборе.</figcaption></figure><div class="cell"><p><strong>Скажите вслух:</strong> какой класс представлен чаще? В каком диапазоне много известных возрастов? Можно ли по гистограмме узнать возраст пассажира с пропуском? Почему распределение известных возрастов может отличаться от распределения всех пассажиров?</p></div></section><section class="notebook-chapter" id="chapter-10"><span class="section-num">NOTEBOOK / 11</span><div class="cell"><h2>11. Самостоятельная практика — сначала без решений</h2>
+<p>Работайте с исходным <code>df</code>, не перезаписывая его. В каждой задаче сначала сформулируйте вопрос, затем напишите 1–4 строки кода. Для каждой числовой доли укажите знаменатель. Решения находятся ниже отдельным разделом.</p></div><div class="cell"><h3>Задание 1. Быстрое знакомство</h3>
+<p>Выведите размер таблицы, первые 3 строки колонок <code>Name</code>, <code>Age</code>, <code>Fare</code> и статистику по стоимости. Подсказка: <code>shape</code>, выбор списка колонок, <code>head</code>, <code>describe</code>.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># TODO: выведите размер df.
+# TODO: выберите три колонки и посмотрите первые три строки.
+# TODO: получите describe для Fare.</code></pre></div><div class="cell"><h3>Задание 2. Качество и частоты</h3>
+<p>Посчитайте число и процент пропущенных возрастов. Затем выведите частоты портов посадки <strong>вместе с пропусками</strong>. Подсказка: <code>isna().sum()</code>, <code>len(df)</code>, <code>value_counts(dropna=False)</code>.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># TODO: число пропусков Age и их доля среди всех пассажиров.
+# TODO: частоты Embarked, включая отсутствующие значения.</code></pre></div><div class="cell"><h3>Задание 3. Отбор пассажиров</h3>
+<p>Найдите пассажиров третьего класса младше 18 лет с известным возрастом. Покажите первые 10 имён и возрастов, затем число найденных строк. Подсказка: маски со скобками и <code>&amp;</code>.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># TODO: сохраните подходящие строки в exercise_children.
+# TODO: покажите Name, Age и количество найденных пассажиров.</code></pre></div><div class="cell"><h3>Задание 4. Сравнение групп</h3>
+<p>Для каждого порта посадки найдите количество известных значений стоимости и медианную стоимость. Пропущенный порт оставьте отдельной группой. Подсказка: <code>groupby(..., dropna=False)</code> и <code>agg</code>.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># TODO: сгруппируйте по Embarked, не теряя неизвестный порт.
+# TODO: посчитайте count и median для Fare.</code></pre></div><div class="cell"><h3>Задание 5. NumPy и наблюдение</h3>
+<p>Получите NumPy-массив стоимости, найдите среднее и медиану с учётом возможных <code>nan</code>. Сравните с pandas. Затем напишите 3 предложения: про состав пассажиров, стоимость и пропуски. Не делайте причинных выводов.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># TODO: to_numpy для Fare; np.nanmean и np.nanmedian.
+# TODO: сравните результаты с методами pandas.
+# Наблюдение 1: ...
+# Наблюдение 2: ...
+# Ограничение данных: ...</code></pre></div></section><section class="notebook-chapter" id="chapter-11"><span class="section-num">NOTEBOOK / 12</span><h2>Решения: сначала своя попытка</h2><details><summary>Открыть решения и сравнить ход рассуждений</summary><div class="cell"><h2>12. Решения — открывайте после своей попытки</h2>
+<p>Вариант кода может отличаться от вашего. Сравнивайте смысл фильтра, размеры групп и знаменатели, а не только запись команды.</p></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Решение 1: знакомство с таблицей.
+print(&quot;Размер:&quot;, df.shape)
+display(df[[&quot;Name&quot;, &quot;Age&quot;, &quot;Fare&quot;]].head(3))
+display(df[&quot;Fare&quot;].describe().round(2))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Решение 2: знаменатель процента пропусков — все строки df.
+exercise_missing_age = df[&quot;Age&quot;].isna().sum()
+print(&quot;Пропусков:&quot;, exercise_missing_age)
+print(&quot;Процент:&quot;, round(exercise_missing_age / len(df) * 100, 1))
+display(df[&quot;Embarked&quot;].value_counts(dropna=False))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Решение 3: неизвестный возраст не считаем детским.
+exercise_children = df.loc[
+    (df[&quot;Pclass&quot;] == 3) &amp; df[&quot;Age&quot;].notna() &amp; (df[&quot;Age&quot;] &lt; 18)
+]
+display(exercise_children[[&quot;Name&quot;, &quot;Age&quot;]].head(10))
+print(&quot;Найдено:&quot;, len(exercise_children))</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Решение 4: NaN-порт остаётся отдельной группой.
+df.groupby(&quot;Embarked&quot;, dropna=False)[&quot;Fare&quot;].agg([&quot;count&quot;, &quot;median&quot;]).round(2)</code></pre></div><div class="cell"><div class="code-head"><span>PYTHON / запускайте в notebook по порядку</span><button class="copy">Скопировать</button></div><pre><code># Решение 5: сравниваем одинаковые величины без округления до проверки.
+exercise_fares = df[&quot;Fare&quot;].to_numpy()
+print(&quot;NumPy:&quot;, np.nanmean(exercise_fares), np.nanmedian(exercise_fares))
+print(&quot;pandas:&quot;, df[&quot;Fare&quot;].mean(), df[&quot;Fare&quot;].median())
+print(&quot;Средние совпали:&quot;, np.isclose(np.nanmean(exercise_fares), df[&quot;Fare&quot;].mean()))</code></pre></div><div class="cell"><h3>Шаблон короткого аналитического вывода</h3>
+<ul>
+<li>«В этом наборе больше всего пассажиров класса __: __ человек из __».</li>
+<li>«Средняя стоимость равна __, медианная — __; эти показатели описывают центр по-разному».</li>
+<li>«Возраст неизвестен у __% записей; сводка возраста и гистограмма описывают только известные значения».</li>
+</ul>
+<p>Подставьте числа из своих расчётов. Разница в стоимости или доле выживших — описание наблюдений, не доказательство причины.</p></div></details></section><section class="notebook-chapter" id="chapter-12"><span class="section-num">NOTEBOOK / 13</span><div class="cell"><h2>13. Чек-лист закрепления</h2>
+<ul>
+<li>☐ Объясняю разницу между <code>head</code>, <code>info</code> и <code>describe</code>.</li>
+<li>☐ Выбираю столбцы, строки через <code>loc</code>/<code>iloc</code>, сортирую без изменения исходника.</li>
+<li>☐ Отличаю пропуск от нуля; могу посчитать число и процент пропусков.</li>
+<li>☐ Получаю частоты, доли, фильтры и групповые сводки.</li>
+<li>☐ Отличаю <code>size</code> от <code>count</code> и знаю знаменатель своей доли.</li>
+<li>☐ Выполняю векторные операции NumPy и учитываю <code>nan</code>.</li>
+<li>☐ Читаю два графика и формулирую вывод с ограничением данных.</li>
+</ul>
+<p><strong>Бонус без нового инструмента:</strong> измените порог возраста в задании 3 с 18 до 16 и сравните число строк. Объясните изменение, не глядя в готовое решение.</p></div></section><section id="resources"><div class="eyebrow">ПРОДОЛЖИТЬ САМОСТОЯТЕЛЬНО</div><h2>Материалы и маршрут дальше</h2><p>Код страницы следует последней профильной практике в репозитории. Запускайте его в notebook сверху вниз: отдельные фрагменты используют переменные из предыдущих ячеек. Кнопка копирования не запускает Python в браузере.</p><div class="links"><a href="Titanic_Week02.ipynb" download>↓ Скачать исходный notebook</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/blob/main/week_02_python_numpy/practice/02_titanic_pandas_numpy_descriptive_practice.ipynb">Практика на GitHub ↗</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/commit/519dfc1bf0c6d72ed5e470db1ba93f17735ffcc6">Исходный коммит практики ↗</a><a href="https://github.com/AssylbekGizatov/tech-orda-course-by-assylbek-additional-materials/tree/main/week_02_python_numpy/homework">Домашняя работа ↗</a></div><p class="muted">Для Titanic требуется интернет при загрузке CSV. В City Trips данные уже включены в notebook. Все исходные объяснения, задания и решения сохранены; формулы и лаборатория дополняют практику.</p></section><div class="section-nav"><a href="/course/">← Все недели</a><a href="/week03/">Week 03 →</a></div><footer>BrainCode Academy · Tech Orda · Учебные материалы Асылбека Ғизатова<br><a href="/course/">Каталог недель</a> · <a href="/">Личный сайт</a></footer></main></div><script src="/course/app.js"></script></body></html>
